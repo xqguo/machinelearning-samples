@@ -113,7 +113,7 @@ namespace CreditCardFraudDetection.Common
         {
             env
                // Convert to an enumerable of user-defined type. 
-               .CreateEnumerable<TransactionObservation>(data, reuseRowObject: false)
+               .Data.CreateEnumerable<TransactionObservation>(data, reuseRowObject: false)
                .Where(x => x.Label == label)
                // Take a couple values as an array.
                .Take(count)
@@ -126,7 +126,7 @@ namespace CreditCardFraudDetection.Common
         {
             env
                // Convert to an enumerable of user-defined type. 
-               .CreateEnumerable<TransactionFraudPrediction>(data, reuseRowObject: false)
+               .Data.CreateEnumerable<TransactionFraudPrediction>(data, reuseRowObject: false)
                .Where(x => x.PredictedLabel == label)
                // Take a couple values as an array.
                .Take(count)
