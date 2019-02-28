@@ -1,15 +1,10 @@
 ﻿using System;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-
-using Microsoft.ML.Core.Data;
 using System.Collections.Generic;
 using Microsoft.ML.Data;
 using Microsoft.ML;
-
-using System.Reflection;
 using Microsoft.Data.DataView;
+using static Microsoft.ML.TrainCatalogBase;
 
 namespace Common
 {
@@ -79,17 +74,13 @@ namespace Common
 
         //(CDLTLL-Pending to Fix - Results --> ?)
 
-        public static void PrintRegressionFoldsAverageMetrics(string algorithmName,
-                                                              (RegressionMetrics metrics,
-                                                               ITransformer model,
-                                                               IDataView scoredTestData)[] crossValidationResults
-                                                             )
+        public static void PrintRegressionFoldsAverageMetrics(string algorithmName,CrossValidationResult<RegressionMetrics>[] crossValidationResults)
         {
-            var L1 = crossValidationResults.Select(r => r.metrics.L1);
-            var L2 = crossValidationResults.Select(r => r.metrics.L2);
-            var RMS = crossValidationResults.Select(r => r.metrics.L1);
-            var lossFunction = crossValidationResults.Select(r => r.metrics.LossFn);
-            var R2 = crossValidationResults.Select(r => r.metrics.RSquared);
+            var L1 = crossValidationResults.Select(r => r.Metrics.L1);
+            var L2 = crossValidationResults.Select(r => r.Metrics.L2);
+            var RMS = crossValidationResults.Select(r => r.Metrics.L1);
+            var lossFunction = crossValidationResults.Select(r => r.Metrics.LossFn);
+            var R2 = crossValidationResults.Select(r => r.Metrics.RSquared);
 
             Console.WriteLine($"*************************************************************************************************************");
             Console.WriteLine($"*       Metrics for {algorithmName} Regression model      ");
@@ -104,12 +95,10 @@ namespace Common
 
         public static void PrintMulticlassClassificationFoldsAverageMetrics(
                                          string algorithmName,
-                                         (MultiClassClassifierMetrics metrics,
-                                          ITransformer model,
-                                          IDataView scoredTestData)[] crossValResults
+                                        CrossValidationResult<MultiClassClassifierMetrics>[] crossValResults
                                                                            )
         {
-            var metricsInMultipleFolds = crossValResults.Select(r => r.metrics);
+            var metricsInMultipleFolds = crossValResults.Select(r => r.Metrics);
 
             var microAccuracyValues = metricsInMultipleFolds.Select(m => m.AccuracyMicro);
             var microAccuracyAverage = microAccuracyValues.Average();
