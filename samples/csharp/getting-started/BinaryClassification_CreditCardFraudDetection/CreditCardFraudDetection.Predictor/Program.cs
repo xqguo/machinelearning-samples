@@ -34,7 +34,7 @@ namespace CreditCardFraudDetection.Predictor
                 Console.WriteLine("***** YOU NEED TO RUN THE TRAINING PROJECT IN THE FIRST PLACE *****");
                 Console.WriteLine("=============== Press any key ===============");
                 Console.ReadKey();
-                return;
+                Environment.Exit(0);
             }
 
             // copy files from train output
@@ -50,6 +50,7 @@ namespace CreditCardFraudDetection.Predictor
 
                 File.Copy(file, Path.Combine(Path.Combine(assetsPath, "input"), Path.GetFileName(file)));
             }
+
         }
 
         public static string GetDataSetAbsolutePath(string relativeDatasetPath)
