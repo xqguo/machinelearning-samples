@@ -1,11 +1,10 @@
 ﻿using System;
-using System.ComponentModel.Composition;
+using System.Composition;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using SpamDetectionConsoleApp.MLDataStructures;
 
@@ -36,7 +35,7 @@ namespace SpamDetectionConsoleApp
             MLContext mlContext = new MLContext();
 
             // Specify the schema for spam data and read it into DataView.
-            var data = mlContext.Data.ReadFromTextFile<SpamInput>(path: TrainDataPath, hasHeader: true, separatorChar: '\t');
+            var data = mlContext.Data.LoadFromTextFile<SpamInput>(path: TrainDataPath, hasHeader: true, separatorChar: '\t');
 
             // Create the estimator which converts the text label to boolean, featurizes the text, and adds a linear trainer.
             var dataProcessPipeLine = mlContext.Transforms.CustomMapping<MyInput, MyOutput>(mapAction: MyLambda.MyAction, contractName: "MyLambda")
@@ -52,7 +51,7 @@ namespace SpamDetectionConsoleApp
             // Let's compute the average AUC, which should be between 0.5 and 1 (higher is better).
             Console.WriteLine("=============== Cross-validating to get model's accuracy metrics ===============");
             var crossValidationResults = mlContext.BinaryClassification.CrossValidate(data:data, estimator:trainingPipeLine, numFolds: 5);
-            var aucs = crossValidationResults.Select(r => r.metrics.Auc);
+            var aucs = crossValidationResults.Select(r => r.Metrics.Auc);
             Console.WriteLine("The AUC is {0}", aucs.Average());
 
             // Now let's train a model on the full dataset to help us get better results
@@ -69,7 +68,7 @@ namespace SpamDetectionConsoleApp
             parts[parts.Length - 1] = lastTransformer;
             ITransformer newModel = new TransformerChain<ITransformer>(parts);
 
-            // Create a PredictionFunction from our model 
+            //Create a PredictionFunction from our model
             var predictor = newModel.CreatePredictionEngine<SpamInput, SpamPrediction>(mlContext);
 
             Console.WriteLine("=============== Predictions for below data===============");
