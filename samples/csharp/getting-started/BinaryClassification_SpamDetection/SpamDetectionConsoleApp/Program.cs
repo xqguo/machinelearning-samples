@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Composition;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using Microsoft.ML;
 using Microsoft.ML.Data;
+using Microsoft.ML.Transforms;
 using SpamDetectionConsoleApp.MLDataStructures;
 
 namespace SpamDetectionConsoleApp
@@ -38,12 +38,12 @@ namespace SpamDetectionConsoleApp
             var data = mlContext.Data.LoadFromTextFile<SpamInput>(path: TrainDataPath, hasHeader: true, separatorChar: '\t');
 
             // Create the estimator which converts the text label to boolean, featurizes the text, and adds a linear trainer.
-            var dataProcessPipeLine = mlContext.Transforms.CustomMapping<MyInput, MyOutput>(mapAction: MyLambda.MyAction, contractName: "MyLambda")
+            var dataProcessPipeline = mlContext.Transforms.CustomMapping<MyInput, MyOutput>(mapAction: MyLambda.IncomeMapping, contractName: nameof(MyLambda.IncomeMapping))
                 .Append(mlContext.Transforms.Text.FeaturizeText(outputColumnName: DefaultColumnNames.Features, inputColumnName: nameof(SpamInput.Message)));
             
             //Create the training pipeline
             Console.WriteLine("=============== Training the model ===============");
-            var trainingPipeLine = dataProcessPipeLine.Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent());
+            var trainingPipeLine = dataProcessPipeline.Append(mlContext.BinaryClassification.Trainers.StochasticDualCoordinateAscent());
 
             // Evaluate the model using cross-validation.
             // Cross-validation splits our dataset into 'folds', trains a model on some folds and 
@@ -57,6 +57,11 @@ namespace SpamDetectionConsoleApp
             // Now let's train a model on the full dataset to help us get better results
             var model = trainingPipeLine.Fit(data);
 
+            /* 
+            // === NOT SUPPORTED IN 0.11 - NEED TO IMPLEMENT WORKAROUND ===
+            // Workaround/issues: 
+            // https://github.com/dotnet/machinelearning/issues/2645 
+            // https://github.com/dotnet/machinelearning/issues/2465
             // The dataset we have is skewed, as there are many more non-spam messages than spam messages.
             // While our model is relatively good at detecting the difference, this skewness leads it to always
             // say the message is not spam. We deal with this by lowering the threshold of the predictor. In reality,
@@ -70,6 +75,10 @@ namespace SpamDetectionConsoleApp
 
             //Create a PredictionFunction from our model
             var predictor = newModel.CreatePredictionEngine<SpamInput, SpamPrediction>(mlContext);
+            // =============================================================
+            */
+
+            var predictor = model.CreatePredictionEngine<SpamInput, SpamPrediction>(mlContext);
 
             Console.WriteLine("=============== Predictions for below data===============");
             // Test a few examples
@@ -92,17 +101,22 @@ namespace SpamDetectionConsoleApp
             public bool Label { get; set; }
         }
 
-        public class MyLambda
+        /// <summary>
+        /// One class that contains the custom mapping functionality that we need for our model.
+        /// 
+        /// It has a <see cref="CustomMappingFactoryAttributeAttribute"/> on it and
+        /// derives from <see cref="CustomMappingFactory{TSrc, TDst}"/>.
+        /// </summary>
+        [CustomMappingFactoryAttribute(nameof(MyLambda.IncomeMapping))]
+        public class MyLambda : CustomMappingFactory<MyInput, MyOutput>
         {
-            [Export("MyLambda")]
-            public ITransformer MyTransformer => ML.Transforms.CustomMappingTransformer<MyInput, MyOutput>(MyAction, "MyLambda");
+            // This is the custom mapping. We now separate it into a method, so that we can use it both in training and in loading.
+            public static void IncomeMapping(MyInput input, MyOutput output) => output.Label = input.Label == "spam" ? true : false;
 
-            [Import]
-            public MLContext ML { get; set; }
-
-            public static void MyAction(MyInput input, MyOutput output)
+            // This factory method will be called when loading the model to get the mapping operation.
+            public override Action<MyInput, MyOutput> GetMapping()
             {
-                output.Label = input.Label == "spam" ? true : false;
+                return IncomeMapping;
             }
         }
 
