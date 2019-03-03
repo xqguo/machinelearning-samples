@@ -3,7 +3,6 @@ using System.Linq;
 using ImageClassification.ImageData;
 using System.IO;
 using Microsoft.ML;
-using Microsoft.ML.Core.Data;
 using Microsoft.ML.Data;
 using static ImageClassification.Model.ConsoleHelpers;
 
