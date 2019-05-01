@@ -9,13 +9,13 @@
 
 # Goal
 
-*The goal is to be able to make **SENTIMENT ANALYSIS** prediction/detection of what the user is writing in a very UI interactive app (BLAZOR based) in the client side and running an ML.NET model (Sentiment analysis based on binary-classification) in the server side.
+The goal is to be able to make **SENTIMENT ANALYSIS** prediction/detection of what the user is writing in a very **UI interactive app (BLAZOR based)** in the client side and running an **ML.NET model** (Sentiment analysis based on binary-classification) in the server side.
 
 Here's a screenshot of the app while running:
 
 ![Blazor App running](./Images/blazor-app-running.png)
 
-From ML.NET perspective, the goal is to optimize the ML.NET model executions by sharing the ML.NET objects used for predictions across Http requests and being able to implement very simple code to be used by the user when predicting, like the following line of code that you could write on any ASP.NET Core controller's method or custom service class:
+From ML.NET perspective, the goal is to **optimize the ML.NET model executions in the server** by sharing the ML.NET objects used for predictions across Http requests and being able to implement very simple code to be used by the user when predicting, like the following line of code that you could write on any ASP.NET Core controller's method or custom service class:
 
 ```cs
 SamplePrediction prediction = _predictionEnginePool.Predict(sampleData);
@@ -31,8 +31,12 @@ Blazor allows you to run C# code in the client side, as shown in the architectur
 
 ![Blazor App Architecture](./Images/blazor-app-architecture.png)
 
-For this sample we chose to run the ML.NET model in the server side, so the model is protected within the service. However, for maximum perf and lower latency you could also run the ML.NET model in the browser in a similar way you can run any model on a console .NET Core app.
+For this sample we chose to run the ML.NET model in the server side, so the model is protected within the service. However, for maximum perf and lower latency you could also run the ML.NET model in the browser (thanks to BLAZOR and WebAssembly) in a similar way you can run any model on a console .NET Core app.
 
+Running the model in the server side allows you to protect the model plus the following benefits:
+
+- The web app can run on a mobile device (ARM) since it is just running HTML and WebAssembly. If the ML.NET model runs in the browser, it wouldn't run on a regular mobile device because ARM is not currently supported by ML.NET.
+- The 'WebAPI' service could be consumed by other remote apps
 
 
 # Problem
