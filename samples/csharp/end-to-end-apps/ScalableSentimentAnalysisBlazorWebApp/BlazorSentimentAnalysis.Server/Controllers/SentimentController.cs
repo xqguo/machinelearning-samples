@@ -27,10 +27,6 @@ namespace BlazorSentimentAnalysis.Server.Controllers
         {
             string sampleText = sentimentText;
 
-            // Random simulation
-            //Random random = new Random();
-            //float percentage = random.Next(0, 100);
-
             // Predict sentiment using ML.NET model
             SampleObservation sampleData = new SampleObservation() { Col0 = sentimentText };
             //Predict sentiment
